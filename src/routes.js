@@ -36,6 +36,14 @@ router
     res.status(200).send("User created successfully");
   });
 
+router.route("/user/:id").get((req, res) => {
+  User.findById(req.params.id)
+    .then(data => {
+      res.status(200).send(data);
+    })
+    .catch(err => res.status(404).send(err));
+});
+
 router.route("/stocks").post((req, res) => {
   // 1. Increase trx num
   // 2. Change balance (and verify)
@@ -58,7 +66,7 @@ router.route("/stocks").post((req, res) => {
       if (type == "buy") {
         var triggered = false;
         if (results["balance"] < value) {
-          return res.status(404).send("Insufficient Balance");
+          return res.status(400).send("Insufficient Balance");
         }
         for (var i = 0; i < results["stocks_owned"].length; i++) {
           var stock = results["stocks_owned"][i];
@@ -212,6 +220,20 @@ router.route("/nextday").post((req, res) => {
         });
     })
     .catch(err => res.status(404).send("ID not found"));
+});
+
+router.route("/login").post((req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  User.findOne({ username: username, password: password })
+    .then(data => {
+      if (!data) {
+        return res.status(404).send();
+      }
+      return res.status(200).send(data);
+    })
+    .catch(err => res.status(404).send("User not found"));
 });
 
 module.exports = router;
